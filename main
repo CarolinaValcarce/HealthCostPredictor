@@ -1,0 +1,89 @@
+#Import libraries. You may or may not use all of these.
+!pip install -q git+https://github.com/tensorflow/docs
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+
+try:
+  # %tensorflow_version only exists in Colab.
+  %tensorflow_version 2.x
+except Exception:
+  pass
+import tensorflow as tf
+
+from tensorflow import keras
+from tensorflow.keras import layers
+
+import tensorflow_docs as tfdocs
+import tensorflow_docs.plots
+import tensorflow_docs.modeling
+
+from sklearn.preprocessing import LabelEncoder
+
+# Import data
+!wget https://cdn.freecodecamp.org/project-data/health-costs/insurance.csv
+dataset = pd.read_csv('insurance.csv')
+dataset.tail()
+
+#We check that the data in the dataset exists and that are correct
+dataset.isnull().any()
+dataset.isna().sum()
+dataset.dtypes
+
+#Let´s transform the categorical columns to numbers to can use the data.
+dataset["sex"]=LabelEncoder().fit_transform(dataset["sex"].astype("str"))
+dataset["smoker"]=LabelEncoder().fit_transform(dataset["smoker"].astype("str"))
+dataset["region"]=LabelEncoder().fit_transform(dataset["region"].astype("str"))
+dataset.tail(10)
+#dataset.shape
+
+#We split the data from dataset in a 20% to test and a 80% to train
+train_dataset=dataset.sample(frac=0.8, random_state=0)
+test_dataset=dataset.drop(train_dataset.index)
+#test_dataset.tail(10)
+test_dataset.shape, train_dataset.shape
+
+
+#We create the train_labels, and test_labels from the expenses from dataset.
+train_labels=train_dataset.pop("expenses")
+test_labels=test_dataset.pop("expenses")
+train_labels, test_labels
+#train_dataset
+
+#We build the model, with train_dataset. We do in a separate function that later on, we call.
+def build_model():
+  model=keras.Sequential([layers.Dense(64, activation="relu", input_shape=[len(train_dataset.keys())]),
+                                     layers.Dense(64,activation="relu"), layers.Dense(1)])
+  optimizer=tf.keras.optimizers.RMSprop(0.001)
+  model.compile(loss="mse",optimizer=optimizer, metrics=["mae","mse"])
+  return model
+
+this_model=build_model()
+this_model.summary()
+
+#We train the model with train_dataset, and train_labels
+history=this_model.fit(train_dataset, train_labels, validation_split=0.2, epochs=1000, verbose=0)
+
+#We run last cell to know if pass the challenge with prediction health cost less that Dolars 3500. And we create the graphic.
+# RUN THIS CELL TO TEST YOUR MODEL. DO NOT MODIFY CONTENTS.
+# Test model by checking how well the model generalizes using the test set.
+loss, mae, mse = this_model.evaluate(test_dataset, test_labels, verbose=2)
+
+print("Testing set Mean Abs Error: {:5.2f} expenses".format(mae))
+
+if mae < 3500:
+  print("You passed the challenge. Great job!")
+else:
+  print("The Mean Abs Error must be less than 3500. Keep trying.")
+
+# Plot predictions._model.predict(test_dataset).flatten()
+test_predictions= this_model.predict(test_dataset).flatten()
+
+a = plt.axes(aspect='equal')
+plt.scatter(test_labels, test_predictions)
+plt.xlabel('True values (expenses)')
+plt.ylabel('Predictions (expenses)')
+lims = [0, 50000]
+plt.xlim(lims)
+plt.ylim(lims)
+_ = plt.plot(lims,lims)
