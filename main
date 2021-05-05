@@ -17,7 +17,6 @@ from tensorflow.keras import layers
 import tensorflow_docs as tfdocs
 import tensorflow_docs.plots
 import tensorflow_docs.modeling
-
 from sklearn.preprocessing import LabelEncoder
 
 # Import data
@@ -30,7 +29,7 @@ dataset.isnull().any()
 dataset.isna().sum()
 dataset.dtypes
 
-#Let´s transform the categorical columns to numbers to can use the data.
+#Let´s transform the categorical columns to numbers to make data useful in a future. 
 dataset["sex"]=LabelEncoder().fit_transform(dataset["sex"].astype("str"))
 dataset["smoker"]=LabelEncoder().fit_transform(dataset["smoker"].astype("str"))
 dataset["region"]=LabelEncoder().fit_transform(dataset["region"].astype("str"))
